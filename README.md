@@ -168,6 +168,13 @@ In [formapro/values](https://github.com/formapro/values) repo you can find examp
 * [Results](https://docs.google.com/spreadsheets/d/1CzVQuAz6cVAUKZyoQZyagQv48mgA3JAYJ2dNsoALV7A/edit#gid=0)
 * [Code](https://github.com/makasim/yadm-benchmark)
 
+## Run tests
+
+```
+docker-compose up -d
+docker-compose exec yadm ./bin/phpunit 
+```
+
 ## License
 
 MIT

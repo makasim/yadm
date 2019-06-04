@@ -22,11 +22,12 @@ class ChangesCollectorTest extends TestCase
 
         set_value($obj, 'aKey', 'aVal');
 
-        self::assertEquals([
+        $changes = $collector->changes(get_values($obj), $collector->getOriginalValues($obj));
+        $this->assertChangesEquals([
             '$set' => [
                 'aKey' => 'aVal',
             ],
-        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
+        ], $changes, json_encode($changes, JSON_PRETTY_PRINT));
 
         // 417025ae3572262667ac5686ce5242722228d7011c335d62e760b5337f48db09
     }
@@ -40,9 +41,9 @@ class ChangesCollectorTest extends TestCase
 
         add_value($obj, 'aKey', 'aVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
-                'aKey.0' => 'aVal',
+                'aKey' => ['aVal'],
             ],
         ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
@@ -57,7 +58,7 @@ class ChangesCollectorTest extends TestCase
 
         set_value($obj, '_id',321);
 
-        self::assertEquals([], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
+        $this->assertChangesEquals([], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
     public function testShouldUseWholeValuesIfNotRegistered()
@@ -68,12 +69,12 @@ class ChangesCollectorTest extends TestCase
         set_value($obj, 'foo','fooVal');
         set_value($obj, 'bar.baz','barVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
                 'foo' => 'fooVal',
                 'bar' => ['baz' => 'barVal'],
             ],
-        ], $collector->changes($obj, []));
+        ], $collector->changes(get_values($obj), []));
     }
 
     public function testShouldTrackAddedValue()
@@ -86,9 +87,11 @@ class ChangesCollectorTest extends TestCase
 
         add_value($obj, 'aKey', 'aVal');
 
-        self::assertEquals([
-            '$set' => [
-                'aKey.1' => 'aVal',
+        $this->assertChangesEquals([
+            '$push' => [
+                'aKey' => [
+                    '$each' => ['aVal'],
+                ],
             ],
         ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
@@ -103,7 +106,7 @@ class ChangesCollectorTest extends TestCase
         set_value($obj, 'aKey', 'aVal');
         set_value($obj, 'aKey', null);
 
-        self::assertEquals([], $collector->changes($obj, []));
+        $this->assertChangesEquals([], $collector->changes(get_values($obj), []));
     }
 
     public function testShouldTrackUnsetValue()
@@ -114,7 +117,7 @@ class ChangesCollectorTest extends TestCase
 
         set_value($obj, 'aKey', null);
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$unset' => [
                 'aKey' => '',
             ]
@@ -130,7 +133,7 @@ class ChangesCollectorTest extends TestCase
 
         set_value($obj, 'aKey', 'aNewVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
                 'aKey' => 'aNewVal',
             ],
@@ -147,7 +150,7 @@ class ChangesCollectorTest extends TestCase
         set_value($obj, 'aKey.fooKey', 'aFooVal');
         set_value($obj, 'aKey.barKey', 'aBarVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
                 'aKey' => [
                     'fooKey' => 'aFooVal',
@@ -171,7 +174,7 @@ class ChangesCollectorTest extends TestCase
 
         set_value($obj, 'aKey', 'aVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
                 'aKey' => 'aVal',
             ],
@@ -190,7 +193,7 @@ class ChangesCollectorTest extends TestCase
         set_value($obj, 'aKey', null);
         set_value($obj, 'anotherKey', 'aVal');
 
-        self::assertEquals([
+        $this->assertChangesEquals([
             '$set' => [
                 'anotherKey' => 'aVal',
             ],
@@ -198,6 +201,11 @@ class ChangesCollectorTest extends TestCase
                 'aKey' => '',
             ],
         ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
+    }
+
+    private function assertChangesEquals(array $expected, array $actual): void
+    {
+        self::assertEquals($expected, $actual, json_encode($actual, JSON_PRETTY_PRINT));
     }
 
     /**

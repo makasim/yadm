@@ -8,9 +8,9 @@ services:
     volumes:
       - ./:/yadm
     environment:
-      - MONGODB_URI=mongodb://mongo/
+      - MONGODB_URI=mongodb://mongo/yadm_test
 
   mongo:
-    image: mongo:3
-#    ports:
-#      - "27017:27017"
+    image: mongo:4
+    ports:
+      - "27017:27017"

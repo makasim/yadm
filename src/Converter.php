@@ -57,7 +57,13 @@ class Converter
 
                     break;
                 case 'replace':
-                    $update['$set'][self::pathToDot($op['path'])] = $op['value'];
+                    if (empty($op['path']) && is_array($op['value'])) {
+                        foreach ($op['value'] as $path => $value) {
+                            $update['$set'][self::pathToDot($path)] = $value;
+                        }
+                    } else {
+                        $update['$set'][self::pathToDot($op['path'])] = $op['value'];
+                    }
 
                     break;
                 default:
