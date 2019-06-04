@@ -1,5 +1,5 @@
 {
-  "name": "formapro/yadm",
+  "name": "makasim/yadm",
   "type": "library",
   "description": "The fastest MongoDB object document mapper.",
   "keywords": ["model", "mongodb", "odm", "storage"],
@@ -21,6 +21,9 @@
   },
   "config": {
     "bin-dir": "bin"
+  },
+  "replace": {
+    "formapro/yadm": "*"
   },
   "autoload": {
     "psr-4": { "Formapro\\Yadm\\": "src" },
