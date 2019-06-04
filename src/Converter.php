@@ -67,19 +67,19 @@ class Converter
             }
         }
 
-//        if (false == empty($update['$set'])) {
-//            foreach (array_keys($update['$set']) as $setPath) {
-//                $matches = [];
-//                if (preg_match('/(\d+)/', $setPath, $matches)) {
-//                    list ($newSetPath) = explode(".$matches[1]", $setPath, 2);
-//
-//                    unset($update['$set'][$setPath]);
-//                    $update['$set'][$newSetPath] = array_get($newSetPath, null, $values);
-//
-//                    $arrayFullReset[$newSetPath] = true;
-//                }
-//            }
-//        }
+        if (false == empty($update['$set'])) {
+            foreach (array_keys($update['$set']) as $setPath) {
+                $matches = [];
+                if (preg_match('/(\d+)/', $setPath, $matches)) {
+                    list ($newSetPath) = explode(".$matches[1]", $setPath, 2);
+
+                    unset($update['$set'][$setPath]);
+                    $update['$set'][$newSetPath] = array_get($newSetPath, null, $values);
+
+                    $arrayFullReset[$newSetPath] = true;
+                }
+            }
+        }
 
         foreach (array_keys($arrayFullReset) as $arrayResetPath) {
             foreach (array_keys($update['$set']) as $setPath) {
