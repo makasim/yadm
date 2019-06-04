@@ -7,7 +7,7 @@ The schema less ODM. It gives you the fastest hydration and persistent. Based on
 ## Install
 
 ```bash
-$ composer require formapro/yadm "mikemccabe/json-patch-php:dev-master as 0.1.1"
+$ composer require makasim/yadm
 ```
 
 ## Storage example
