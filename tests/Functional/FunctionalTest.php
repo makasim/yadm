@@ -24,7 +24,7 @@ abstract class FunctionalTest extends TestCase
      */
     protected function setUpMongoClient()
     {
-        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/';
+        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/yadm_test';
 
         $this->client = new Client($uri);
         $this->database = $this->client->selectDatabase('yadm_test');
@@ -40,7 +40,7 @@ abstract class FunctionalTest extends TestCase
 
     protected function getCollectionFactory(): CollectionFactory
     {
-        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/';
+        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/yadm_test';
 
         return new CollectionFactory(new ClientProvider($uri), $uri);
     }

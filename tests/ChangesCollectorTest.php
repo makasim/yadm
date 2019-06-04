@@ -181,7 +181,7 @@ class ChangesCollectorTest extends TestCase
         ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
-    public function testShouldFoo()
+    public function testShouldSetUnsetValues()
     {
         $obj = $this->createPersistedObject([
             'aKey' => 'aVal',
@@ -203,15 +203,37 @@ class ChangesCollectorTest extends TestCase
         ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
     }
 
+    public function testShouldReplaceOneObjectByAnother()
+    {
+        $obj = $this->createPersistedObject([
+            'aKey' => ['aCollection' => [['foo' => 'fooVal'], ['bar' => 'barVal']]],
+        ]);
+
+        $collector = new ChangesCollector();
+        $collector->register($obj, get_values($obj));
+
+        $newSubObj = new TestObject();
+        $values = ['foo' => 'aNewFooVal'];
+        set_values($newSubObj, $values);
+
+        $obj->setObject('aKey.aCollection.0', $newSubObj);
+
+        $this->assertChangesEquals([
+            '$set' => [
+                'aKey.aCollection' => [
+                    0 => ['foo' => 'aNewFooVal'],
+                    1 => ['bar' => 'barVal']
+                ]
+            ]
+        ], $collector->changes(get_values($obj), $collector->getOriginalValues($obj)));
+    }
+
     private function assertChangesEquals(array $expected, array $actual): void
     {
         self::assertEquals($expected, $actual, json_encode($actual, JSON_PRETTY_PRINT));
     }
 
-    /**
-     * @return object
-     */
-    private function createPersistedObject(array $values = [])
+    private function createPersistedObject(array $values = []): TestObject
     {
         $obj = new TestObject();
         set_values($obj, $values);

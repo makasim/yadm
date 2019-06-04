@@ -2,15 +2,11 @@
 namespace Formapro\Yadm;
 
 use function Formapro\Values\array_get;
+use function Formapro\Values\array_path_set;
 
 class Converter
 {
-    /**
-     * @param array $diff
-     * 
-     * @return array
-     */
-    public static function convertJsonPatchToMongoUpdate(array $diff, array $values)
+    public static function convertJsonPatchToMongoUpdate(array $diff, array $values): array
     {
         $update = ['$set' => [], '$unset' => [], '$push' => []];
 
@@ -70,6 +66,20 @@ class Converter
                     throw new \LogicException('JSON Patch operation "'.$op['op'].'"" is not supported.');
             }
         }
+
+//        if (false == empty($update['$set'])) {
+//            foreach (array_keys($update['$set']) as $setPath) {
+//                $matches = [];
+//                if (preg_match('/(\d+)/', $setPath, $matches)) {
+//                    list ($newSetPath) = explode(".$matches[1]", $setPath, 2);
+//
+//                    unset($update['$set'][$setPath]);
+//                    $update['$set'][$newSetPath] = array_get($newSetPath, null, $values);
+//
+//                    $arrayFullReset[$newSetPath] = true;
+//                }
+//            }
+//        }
 
         foreach (array_keys($arrayFullReset) as $arrayResetPath) {
             foreach (array_keys($update['$set']) as $setPath) {
