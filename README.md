@@ -1,6 +1,6 @@
 # Yadm is the fastest MongoDB ODM.
 
-[![Build Status](https://travis-ci.org/formapro/values.png?branch=master)](https://travis-ci.org/formapro/yadm)
+[![Build Status](https://travis-ci.org/makasim/yadm.png?branch=master)](https://travis-ci.org/makasim/yadm)
 
 The schema less ODM. It gives you the fastest hydration and persistent. Based on [formapro/values](https://github.com/formapro/values) lib.
 
@@ -167,6 +167,13 @@ In [formapro/values](https://github.com/formapro/values) repo you can find examp
 
 * [Results](https://docs.google.com/spreadsheets/d/1CzVQuAz6cVAUKZyoQZyagQv48mgA3JAYJ2dNsoALV7A/edit#gid=0)
 * [Code](https://github.com/makasim/yadm-benchmark)
+
+## Run tests
+
+```
+docker-compose up -d
+docker-compose exec yadm ./bin/phpunit 
+```
 
 ## License
 

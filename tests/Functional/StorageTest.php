@@ -1,6 +1,7 @@
 <?php
 namespace Formapro\Yadm\Tests\Functional;
 
+use function Formapro\Yadm\get_object_id;
 use Formapro\Yadm\Hydrator;
 use Formapro\Yadm\PessimisticLock;
 use Formapro\Yadm\Storage;
@@ -11,11 +12,9 @@ class StorageTest extends FunctionalTest
 {
     public function testCreateModel()
     {
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
-
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator);
 
         $model = $storage->create();
 
@@ -25,10 +24,9 @@ class StorageTest extends FunctionalTest
 
     public function testInsertModel()
     {
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal', 'ololo' => ['foo', 'foo' => 'fooVal']];
@@ -38,11 +36,10 @@ class StorageTest extends FunctionalTest
         self::assertInstanceOf(InsertOneResult::class, $result);
         self::assertTrue($result->isAcknowledged());
 
-        self::assertArrayHasKey('_id', $model->values);
-        self::assertNotEmpty($model->values['_id']);
-        self::assertInternalType('string', $model->values['_id']);
+        self::assertArrayNotHasKey('_id', $model->values);
+        self::assertInstanceOf(ObjectID::class, get_object_id($model, true));
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
+        $foundModel = $storage->findOne(['_id' => get_object_id($model)]);
 
         self::assertInstanceOf(Model::class, $foundModel);
         self::assertEquals($model->values, $foundModel->values);
@@ -50,10 +47,9 @@ class StorageTest extends FunctionalTest
 
     public function testUpdateModel()
     {
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -70,7 +66,7 @@ class StorageTest extends FunctionalTest
         //guard
         self::assertTrue($result->isAcknowledged());
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
+        $foundModel = $storage->findOne(['_id' => get_object_id($model)]);
 
         self::assertInstanceOf(Model::class, $foundModel);
         self::assertEquals($model->values, $foundModel->values);
@@ -78,10 +74,9 @@ class StorageTest extends FunctionalTest
 
     public function testDeleteModel()
     {
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -96,7 +91,7 @@ class StorageTest extends FunctionalTest
         //guard
         self::assertTrue($result->isAcknowledged());
 
-        self::assertNull($storage->findOne(['_id' => new ObjectID($model->values['_id'])]));
+        self::assertNull($storage->findOne(['_id' => get_object_id($model)]));
     }
 
     public function testUpdateModelPessimisticLock()
@@ -105,10 +100,9 @@ class StorageTest extends FunctionalTest
         $pessimisticLock = new PessimisticLock($lockCollection);
         $pessimisticLock->createIndexes();
 
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator, null, $pessimisticLock);
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator, null, $pessimisticLock);
 
         $model = new Model();
         $model->values = ['foo' => 'fooVal', 'bar' => 'barVal'];
@@ -118,7 +112,7 @@ class StorageTest extends FunctionalTest
         //guard
         self::assertTrue($result->isAcknowledged());
 
-        $storage->lock($model->values['_id'], function($lockedModel, $storage) use ($model) {
+        $storage->lock(get_object_id($model), function($lockedModel, $storage) use ($model) {
             self::assertInstanceOf(Model::class, $lockedModel);
             self::assertEquals($model->values, $lockedModel->values);
 
@@ -132,7 +126,7 @@ class StorageTest extends FunctionalTest
             self::assertTrue($result->isAcknowledged());
         });
 
-        $foundModel = $storage->findOne(['_id' => new ObjectID($model->values['_id'])]);
+        $foundModel = $storage->findOne(['_id' => get_object_id($model)]);
 
         self::assertInstanceOf(Model::class, $foundModel);
         self::assertEquals($model->values, $foundModel->values);
@@ -140,10 +134,9 @@ class StorageTest extends FunctionalTest
 
     public function testFindModels()
     {
-        $collection = $this->database->selectCollection('storage_test');
         $hydrator = new Hydrator(Model::class);
 
-        $storage = new Storage($collection, $hydrator);
+        $storage = new Storage('storage_test', $this->getCollectionFactory(), $hydrator);
 
         $result = $storage->find([]);
 

@@ -66,13 +66,17 @@ class PessimisticLock implements StorageMetaInterface
             throw new \LogicException('The limit could not be greater than a default one. The default is used to set an expiration index');
         }
 
-        $timeout = time() + $limit; // I think it must be a bit greater then mongos index ttl so there is a way to process data.
+        $timeout = microtime(true) + $limit; // I think it must be a bit greater then mongos index ttl so there is a way to process data.
+        while (microtime(true) < $timeout) {
+            // block is obtain by this locker and since php is single threaded it is safe to say it is locked.
+            if ($this->collection->count(['id' => $id, 'sessionId' => $this->sessionId])) {
+                return;
+            }
 
-        while (time() < $timeout) {
             try {
                 $result = $this->collection->insertOne([
                     'id' => $id,
-                    'timestamp' => new UTCDatetime(time() * 1000),
+                    'timestamp' => new UTCDatetime((int) (microtime(true) * 1000)),
                     'sessionId' => $this->sessionId,
                 ]);
 
@@ -148,9 +152,9 @@ class PessimisticLock implements StorageMetaInterface
         foreach ($this->collection->listIndexes() as $index) {
             $existingIndexes[$index->getName()] = $index->getName();
         }
-        
+
         foreach ($this->getIndexes() as $index) {
-            if (empty($index->getOptions()['name'])) {
+            if (empty($existingIndexes[$index->getOptions()['name']])) {
                 $this->collection->createIndex($index->getKey(), $index->getOptions());
             }
         }

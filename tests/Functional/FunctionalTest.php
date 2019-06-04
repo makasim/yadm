@@ -1,6 +1,8 @@
 <?php
 namespace Formapro\Yadm\Tests\Functional;
 
+use Formapro\Yadm\ClientProvider;
+use Formapro\Yadm\CollectionFactory;
 use MongoDB\Client;
 use MongoDB\Database;
 use PHPUnit\Framework\TestCase;
@@ -13,14 +15,19 @@ abstract class FunctionalTest extends TestCase
     protected $database;
 
     /**
+     * @var Client
+     */
+    protected $client;
+
+    /**
      * @before
      */
     protected function setUpMongoClient()
     {
-        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/';
+        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/yadm_test';
 
-        $client = new Client($uri);
-        $this->database = $client->selectDatabase('yadm_test');
+        $this->client = new Client($uri);
+        $this->database = $this->client->selectDatabase('yadm_test');
 
         foreach ($this->database->listCollections() as $collectionInfo) {
             if ('system.indexes' == $collectionInfo->getName()) {
@@ -29,5 +36,12 @@ abstract class FunctionalTest extends TestCase
 
             $this->database->dropCollection($collectionInfo->getName());
         }
+    }
+
+    protected function getCollectionFactory(): CollectionFactory
+    {
+        $uri = getenv('MONGODB_URI') ?: 'mongodb://127.0.0.1/yadm_test';
+
+        return new CollectionFactory(new ClientProvider($uri), $uri);
     }
 }

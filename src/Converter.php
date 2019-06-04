@@ -2,15 +2,11 @@
 namespace Formapro\Yadm;
 
 use function Formapro\Values\array_get;
+use function Formapro\Values\array_path_set;
 
 class Converter
 {
-    /**
-     * @param array $diff
-     * 
-     * @return array
-     */
-    public static function convertJsonPatchToMongoUpdate(array $diff, array $values)
+    public static function convertJsonPatchToMongoUpdate(array $diff, array $values): array
     {
         $update = ['$set' => [], '$unset' => [], '$push' => []];
 
@@ -57,13 +53,33 @@ class Converter
 
                     break;
                 case 'replace':
-                    $update['$set'][self::pathToDot($op['path'])] = $op['value'];
+                    if (empty($op['path']) && is_array($op['value'])) {
+                        foreach ($op['value'] as $path => $value) {
+                            $update['$set'][self::pathToDot($path)] = $value;
+                        }
+                    } else {
+                        $update['$set'][self::pathToDot($op['path'])] = $op['value'];
+                    }
 
                     break;
                 default:
                     throw new \LogicException('JSON Patch operation "'.$op['op'].'"" is not supported.');
             }
         }
+
+//        if (false == empty($update['$set'])) {
+//            foreach (array_keys($update['$set']) as $setPath) {
+//                $matches = [];
+//                if (preg_match('/(\d+)/', $setPath, $matches)) {
+//                    list ($newSetPath) = explode(".$matches[1]", $setPath, 2);
+//
+//                    unset($update['$set'][$setPath]);
+//                    $update['$set'][$newSetPath] = array_get($newSetPath, null, $values);
+//
+//                    $arrayFullReset[$newSetPath] = true;
+//                }
+//            }
+//        }
 
         foreach (array_keys($arrayFullReset) as $arrayResetPath) {
             foreach (array_keys($update['$set']) as $setPath) {
